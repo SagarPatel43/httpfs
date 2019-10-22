@@ -26,6 +26,7 @@ public class RequestParsingService {
         String requestLine = in.readLine();
         if (requestLine != null) {
             if (requestLine.split(" ").length < 3) {
+                // TODO These errors would be 400s
                 throw new HttpfsException("Invalid request-line in request");
             }
             String[] requestLineSplit = requestLine.split(" ", 3);
@@ -47,6 +48,7 @@ public class RequestParsingService {
         }
 
         if (method.equalsIgnoreCase(POST)) {
+            // TODO 400 if this was not provided by the requester
             int contentLength = Integer.parseInt(headers.get(CONTENT_LENGTH));
             int c;
             while ((c = in.read()) != -1) {

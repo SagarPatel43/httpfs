@@ -1,8 +1,12 @@
 package server;
 
 import data.BaseRequest;
+import data.GetRequest;
 import data.PostRequest;
+import data.Response;
 import exception.HttpfsException;
+import services.GetFileService;
+import services.PostFileService;
 import services.RequestParsingService;
 
 import java.io.BufferedReader;
@@ -11,7 +15,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 
-import static constants.Constants.POST;
+import static constants.Constants.GET;
 
 public class HttpServer {
 
@@ -20,6 +24,7 @@ public class HttpServer {
     @SuppressWarnings("InfiniteLoopStatement")
     public static void start() throws HttpfsException {
         try {
+            // TODO overhaul this exception stuff, it should all be RESPONSES
             // TODO Port from parsed data
             SocketAddress bindAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), 8080);
             ServerSocket server = new ServerSocket();
@@ -34,19 +39,15 @@ public class HttpServer {
 
                 BaseRequest request = RequestParsingService.parseRequest(in);
 
-
-                System.err.print(request.getMethod() + " ");
-                System.err.print(request.getHttpVersion() + " ");
-                System.err.println(request.getUri() + " ");
-                request.getHeaders().forEach((k, v) -> System.err.println(k + ": " + v));
-
-                System.out.println("\n");
-                if (request.getMethod().equalsIgnoreCase(POST)) {
-                    System.err.println(((PostRequest) request).getBody());
+                Response response;
+                if (request.getMethod().equalsIgnoreCase(GET)) {
+                    response = GetFileService.handleRequest((GetRequest) request);
+                } else {
+                    response = PostFileService.handleRequest((PostRequest) request);
                 }
 
-                String body = "Im sending this from httpfs. Hello.";
-                out.println("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + body.length() + "\r\n\r\n" + body);
+                out.println(response);
+//                out.println("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + body.length() + "\r\n\r\n" + body);
 
                 in.close();
                 out.close();
