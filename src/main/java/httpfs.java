@@ -1,12 +1,17 @@
+import data.ServerConfiguration;
 import exception.HttpfsException;
 import server.HttpServer;
+import services.ServerConfigParsingService;
+
+import java.io.IOException;
 
 public class httpfs {
 
     public static void main(String[] args) {
         try {
-            HttpServer.start();
-        } catch (HttpfsException e) {
+            ServerConfiguration serverConfiguration = ServerConfigParsingService.parseServerConfiguration(args);
+            HttpServer.start(serverConfiguration);
+        } catch (HttpfsException | IOException e) {
             e.printStackTrace();
         }
     }

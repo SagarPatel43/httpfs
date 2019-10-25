@@ -14,11 +14,9 @@ public class GetFileService {
 
     private GetFileService() { }
 
-    // TODO change this to data directory (currently at root)
-    private static String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
-
-    public static Response handleRequest(GetRequest getRequest) {
-        Path pathToFile = Paths.get(cwd, getRequest.getUri());
+    // TODO GET REQUESTS SHOULD RETURN CONTENT-LENGTH IN HEADERS
+    public static Response handleRequest(GetRequest getRequest, String dataDirectory) {
+        Path pathToFile = Paths.get(dataDirectory, getRequest.getUri());
         StringBuilder body = new StringBuilder();
 
         if (Files.isDirectory(pathToFile)) {

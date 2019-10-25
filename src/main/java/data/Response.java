@@ -74,10 +74,12 @@ public class Response {
         return headersResponse.toString();
     }
 
-    @Override
-    public String toString() {
-        return httpVersion + " " + status.getStatusCode() + " " + status.getStatusPhrase() + "\r\n" + getHeadersResponse() + "\r\n" + body;
+    public String getSimpleOutput() {
+        return httpVersion + " " + status.getStatusCode() + " " + status.getStatusPhrase();
     }
 
-
+    @Override
+    public String toString() {
+        return getSimpleOutput() + "\r\n" + getHeadersResponse() + "\r\n" + body;
+    }
 }

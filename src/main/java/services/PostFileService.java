@@ -13,11 +13,10 @@ public class PostFileService {
 
     private PostFileService() { }
 
-    private static String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
-
-    public static Response handleRequest(PostRequest postRequest) {
+    // TODO DO WE WANT TO RETURN CONTENT-LENGTH BACK IN RESPONSE?
+    public static Response handleRequest(PostRequest postRequest, String dataDirectory) {
         try {
-            Path pathToFile = Paths.get(cwd, postRequest.getUri());
+            Path pathToFile = Paths.get(dataDirectory, postRequest.getUri());
             Files.createDirectories(pathToFile.getParent());
             // TODO added this for overwrite
             if (Files.notExists(pathToFile)) {

@@ -38,5 +38,26 @@ public abstract class BaseRequest {
         this.headers = headers;
     }
 
+    private String getHeadersRequest() {
+        StringBuilder headersRequest = new StringBuilder();
+        headers.forEach((header, headerValue) -> headersRequest.append(header)
+                .append(": ")
+                .append(headerValue)
+                .append("\r\n"));
+
+        return headersRequest.toString();
+    }
+
     public abstract String getMethod();
+
+    public String getSimpleOutput() {
+        return getMethod() + " " + getUri() + " " + getHttpVersion();
+    }
+
+    @Override
+    public String toString() {
+        String requestLine = getSimpleOutput();
+        String headers = getHeadersRequest();
+        return requestLine + "\r\n" + headers;
+    }
 }

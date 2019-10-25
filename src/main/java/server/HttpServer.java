@@ -1,10 +1,7 @@
 package server;
 
 import constants.Status;
-import data.BaseRequest;
-import data.GetRequest;
-import data.PostRequest;
-import data.Response;
+import data.*;
 import exception.HttpfsException;
 import services.GetFileService;
 import services.PostFileService;
@@ -24,15 +21,16 @@ public class HttpServer {
     private HttpServer() {}
 
     @SuppressWarnings("InfiniteLoopStatement")
-    public static void start() throws HttpfsException {
+    public static void start(ServerConfiguration serverConfiguration) throws HttpfsException {
         try {
             // TODO overhaul this exception stuff, it should all be RESPONSES
-            // TODO Port from parsed data
-            // TODO What to do for verbose
-            SocketAddress bindAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), 8080);
+            SocketAddress bindAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), serverConfiguration.getPort());
             ServerSocket server = new ServerSocket();
 
             server.bind(bindAddress);
+
+            System.out.println("Httpfs server started at localhost:" + serverConfiguration.getPort());
+            System.out.println("Root data directory set to " + serverConfiguration.getDataDirectory());
 
             // Server runs until terminated
             while (true) {
@@ -41,18 +39,19 @@ public class HttpServer {
                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 
                 // TODO awkward control flow, need to fix
-                //  good candidate for debug message (verbose)
                 try {
                     BaseRequest request = RequestParsingService.parseRequest(in);
 
                     Response response;
                     if (request.getMethod().equalsIgnoreCase(GET)) {
-                        response = GetFileService.handleRequest((GetRequest) request);
+                        response = GetFileService.handleRequest((GetRequest) request, serverConfiguration.getDataDirectory());
                     } else {
-                        response = PostFileService.handleRequest((PostRequest) request);
+                        response = PostFileService.handleRequest((PostRequest) request, serverConfiguration.getDataDirectory());
                     }
 
                     out.println(response);
+
+                    printDebugging(serverConfiguration, request, response);
                 } catch(HttpfsException e) {
                     out.println(new Response(HTTP10, Status.BAD_REQUEST));
                 }
@@ -64,6 +63,15 @@ public class HttpServer {
         } catch (IOException e) {
             throw new HttpfsException("Address/Port combination not valid");
         }
+    }
 
+    private static void printDebugging(ServerConfiguration serverConfiguration, BaseRequest request, Response response) {
+        String requestDebugging = (serverConfiguration.isVerbose()) ? request.toString() : request.getSimpleOutput();
+        String responseDebugging = (serverConfiguration.isVerbose()) ? response.toString() : response.getSimpleOutput();
+
+        System.out.println("\n--- Request received from client ---");
+        System.out.println(requestDebugging);
+        System.out.println("\n--- Response sent to client ---");
+        System.out.println(responseDebugging);
     }
 }

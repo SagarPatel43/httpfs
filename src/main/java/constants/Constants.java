@@ -1,5 +1,7 @@
 package constants;
 
+import java.nio.file.Paths;
+
 public abstract class Constants {
 
     public static String GET = "get";
@@ -7,6 +9,8 @@ public abstract class Constants {
     public static String HTTP10 = "HTTP/1.0";
 
     public final static String CONTENT_LENGTH = "Content-Length";
+
+    public static String CWD = Paths.get(".").toAbsolutePath().normalize().toString();
 
     public static String OK_CODE = "200";
     public static String OK_PHRASE = "OK";

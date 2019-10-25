@@ -25,4 +25,9 @@ public class PostRequest extends BaseRequest {
     public String getMethod() {
         return POST;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + "\r\n" + body;
+    }
 }
