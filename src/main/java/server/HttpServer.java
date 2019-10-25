@@ -1,5 +1,6 @@
 package server;
 
+import constants.Status;
 import data.BaseRequest;
 import data.GetRequest;
 import data.PostRequest;
@@ -16,6 +17,7 @@ import java.io.PrintWriter;
 import java.net.*;
 
 import static constants.Constants.GET;
+import static constants.Constants.HTTP10;
 
 public class HttpServer {
 
@@ -26,6 +28,7 @@ public class HttpServer {
         try {
             // TODO overhaul this exception stuff, it should all be RESPONSES
             // TODO Port from parsed data
+            // TODO What to do for verbose
             SocketAddress bindAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), 8080);
             ServerSocket server = new ServerSocket();
 
@@ -37,17 +40,22 @@ public class HttpServer {
                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
 
-                BaseRequest request = RequestParsingService.parseRequest(in);
+                // TODO awkward control flow, need to fix
+                //  good candidate for debug message (verbose)
+                try {
+                    BaseRequest request = RequestParsingService.parseRequest(in);
 
-                Response response;
-                if (request.getMethod().equalsIgnoreCase(GET)) {
-                    response = GetFileService.handleRequest((GetRequest) request);
-                } else {
-                    response = PostFileService.handleRequest((PostRequest) request);
+                    Response response;
+                    if (request.getMethod().equalsIgnoreCase(GET)) {
+                        response = GetFileService.handleRequest((GetRequest) request);
+                    } else {
+                        response = PostFileService.handleRequest((PostRequest) request);
+                    }
+
+                    out.println(response);
+                } catch(HttpfsException e) {
+                    out.println(new Response(HTTP10, Status.BAD_REQUEST));
                 }
-
-                out.println(response);
-//                out.println("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + body.length() + "\r\n\r\n" + body);
 
                 in.close();
                 out.close();

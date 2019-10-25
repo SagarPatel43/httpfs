@@ -1,49 +1,47 @@
 package data;
 
+import constants.Status;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class Response {
     private String httpVersion;
-    private String statusCode;
-    private String reasonPhrase;
+    private Status status;
     private Map<String, String> headers;
     private String body;
 
-    public Response() {
-        this.httpVersion = "";
-        this.statusCode = "";
-        this.reasonPhrase = "";
-        this.headers = null;
+    public Response(String httpVersion, Status status) {
+        this.httpVersion = httpVersion;
+        this.status = status;
+        this.headers = new HashMap<>();
         this.body = "";
     }
 
-    public Response(String httpVersion, String statusCode, String reasonPhrase, Map<String, String> headers, String body) {
+    public Response(String httpVersion, Status status, Map<String, String> headers) {
         this.httpVersion = httpVersion;
-        this.statusCode = statusCode;
-        this.reasonPhrase = reasonPhrase;
+        this.status = status;
+        this.headers = new HashMap<>(headers);
+        this.body = "";
+    }
+
+    public Response(String httpVersion, Status status, Map<String, String> headers, String body) {
+        this.httpVersion = httpVersion;
+        this.status = status;
         this.headers = new HashMap<>(headers);
         this.body = body;
     }
 
-    public Response(String httpVersion, String statusCode, String reasonPhrase, Map<String, String> headers) {
-        this.httpVersion = httpVersion;
-        this.statusCode = statusCode;
-        this.reasonPhrase = reasonPhrase;
-        this.headers = new HashMap<>(headers);
-        this.body = "";
-    }
-
-    public String getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(String statusCode) {
-        this.statusCode = statusCode;
-    }
-
     public void setHeaders(Map<String, String> headers) {
         this.headers = new HashMap<>(headers);
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public void appendBody(String body) {
@@ -56,14 +54,6 @@ public class Response {
 
     public void setHttpVersion(String httpVersion) {
         this.httpVersion = httpVersion;
-    }
-
-    public String getReasonPhrase() {
-        return reasonPhrase;
-    }
-
-    public void setReasonPhrase(String reasonPhrase) {
-        this.reasonPhrase = reasonPhrase;
     }
 
     public String getBody() {
@@ -86,6 +76,8 @@ public class Response {
 
     @Override
     public String toString() {
-        return httpVersion + " " + statusCode + " " + reasonPhrase + "\r\n" + getHeadersResponse() + "\r\n" + body;
+        return httpVersion + " " + status.getStatusCode() + " " + status.getStatusPhrase() + "\r\n" + getHeadersResponse() + "\r\n" + body;
     }
+
+
 }

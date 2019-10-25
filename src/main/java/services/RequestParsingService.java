@@ -49,6 +49,9 @@ public class RequestParsingService {
 
         if (method.equalsIgnoreCase(POST)) {
             // TODO 400 if this was not provided by the requester
+            if(!headers.containsKey(CONTENT_LENGTH)) {
+                throw new HttpfsException("Content-length header was not provided for POST request");
+            }
             int contentLength = Integer.parseInt(headers.get(CONTENT_LENGTH));
             int c;
             while ((c = in.read()) != -1) {

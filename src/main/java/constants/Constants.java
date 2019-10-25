@@ -4,6 +4,7 @@ public abstract class Constants {
 
     public static String GET = "get";
     public static String POST = "post";
+    public static String HTTP10 = "HTTP/1.0";
 
     public final static String CONTENT_LENGTH = "Content-Length";
 
@@ -12,4 +13,13 @@ public abstract class Constants {
 
     public static String CREATED_CODE = "201";
     public static String CREATED_PHRASE = "Created";
+
+    public static String NOT_FOUND_CODE = "404";
+    public static String NOT_FOUND_PHRASE = "Not Found";
+
+    public static String FORBIDDEN_CODE = "403";
+    public static String FORBIDDEN_PHRASE = "Forbidden";
+
+    public static String BAD_REQUEST_CODE = "400";
+    public static String BAD_REQUEST_PHRASE = "Bad Request";
 }
