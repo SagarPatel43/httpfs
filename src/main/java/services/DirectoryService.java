@@ -2,32 +2,52 @@ package services;
 
 import exception.HttpfsException;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 class DirectoryService {
 
-    static void validatePath(String path) throws HttpfsException, IOException {
-        File file = new File(path);
+    static void validatePath(String path) throws HttpfsException {
+        Path pathToFile = Paths.get(path);
 
-        if (!file.isAbsolute()) {
+        if (!pathToFile.isAbsolute()) {
             throw new HttpfsException("Httpfs must be provided an absolute path");
-        } else if(!file.isDirectory()) {
+        } else if (!Files.isDirectory(pathToFile)) {
             throw new HttpfsException("Httpfs must be provided a valid directory");
-        } else if (!Files.isReadable(file.toPath())){
+        } else if (!Files.isReadable(pathToFile)) {
             throw new HttpfsException("Insufficient permissions to read file");
-        } else if (!Files.isWritable(file.toPath())){
+        } else if (!Files.isWritable(pathToFile)) {
             throw new HttpfsException("Insufficient permissions to write to file");
         }
 
-        String canonicalPath = file.getCanonicalPath();
-        String absolutePath = file.getAbsolutePath();
+        checkPathTraversal(pathToFile);
+    }
 
-        if (!canonicalPath.equalsIgnoreCase(absolutePath)) {
+    static Path validatePostPath(String rootPath, String uri) throws HttpfsException {
+        Path pathToFile = Paths.get(rootPath, uri);
+
+        checkPathTraversal(pathToFile);
+
+        if (pathToFile.equals(Paths.get(rootPath))) {
+            throw new HttpfsException("No path was specified for POST request");
+        }
+
+        return pathToFile;
+    }
+
+    static Path validateGetPath(String rootPath, String uri) throws HttpfsException {
+        Path pathToFile = Paths.get(rootPath, uri);
+
+        checkPathTraversal(pathToFile);
+
+        return pathToFile;
+    }
+
+    private static void checkPathTraversal(Path pathToFile) throws HttpfsException {
+        if (!pathToFile.equals(pathToFile.normalize())) {
             throw new HttpfsException("Path traversal is not permitted!");
         }
     }
-
 
 }

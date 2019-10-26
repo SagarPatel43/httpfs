@@ -26,7 +26,6 @@ public class RequestParsingService {
         String requestLine = in.readLine();
         if (requestLine != null) {
             if (requestLine.split(" ").length < 3) {
-                // TODO These errors would be 400s
                 throw new HttpfsException("Invalid request-line in request");
             }
             String[] requestLineSplit = requestLine.split(" ", 3);
@@ -34,7 +33,7 @@ public class RequestParsingService {
             uri = requestLineSplit[1];
             httpVersion = requestLineSplit[2];
         } else {
-            throw new HttpfsException("Error while trying to read client request");
+            throw new HttpfsException("Empty request provided");
         }
 
         String line;
@@ -48,7 +47,6 @@ public class RequestParsingService {
         }
 
         if (method.equalsIgnoreCase(POST)) {
-            // TODO 400 if this was not provided by the requester
             if(!headers.containsKey(CONTENT_LENGTH)) {
                 throw new HttpfsException("Content-length header was not provided for POST request");
             }

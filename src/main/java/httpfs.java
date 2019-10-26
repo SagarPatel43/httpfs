@@ -12,6 +12,7 @@ public class httpfs {
             ServerConfiguration serverConfiguration = ServerConfigParsingService.parseServerConfiguration(args);
             HttpServer.start(serverConfiguration);
         } catch (HttpfsException | IOException e) {
+            // Thrown by ServerConfigParsingService (execution terminates)
             e.printStackTrace();
         }
     }

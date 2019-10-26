@@ -5,7 +5,8 @@ public enum Status {
     CREATED(201, "Created"),
     BAD_REQUEST(400, "Bad Request"),
     FORBIDDEN(403, "Forbidden"),
-    NOT_FOUND(404, "Not Found");
+    NOT_FOUND(404, "Not Found"),
+    INTERNAL_ERROR(500, "Internal Server Error");
 
     private int statusCode;
     private String statusPhrase;

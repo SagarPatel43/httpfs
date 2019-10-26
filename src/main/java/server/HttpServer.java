@@ -13,17 +13,16 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 
-import static constants.Constants.GET;
-import static constants.Constants.HTTP10;
+import static constants.Constants.*;
 
 public class HttpServer {
 
     private HttpServer() {}
 
     @SuppressWarnings("InfiniteLoopStatement")
-    public static void start(ServerConfiguration serverConfiguration) throws HttpfsException {
+    public static void start(ServerConfiguration serverConfiguration) {
+        PrintWriter out = null;
         try {
-            // TODO overhaul this exception stuff, it should all be RESPONSES
             SocketAddress bindAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), serverConfiguration.getPort());
             ServerSocket server = new ServerSocket();
 
@@ -36,42 +35,48 @@ public class HttpServer {
             while (true) {
                 Socket client = server.accept();
                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+                out = new PrintWriter(client.getOutputStream(), true);
 
-                // TODO awkward control flow, need to fix
+                BaseRequest request = null;
+                Response response = null;
                 try {
-                    BaseRequest request = RequestParsingService.parseRequest(in);
-
-                    Response response;
-                    if (request.getMethod().equalsIgnoreCase(GET)) {
-                        response = GetFileService.handleRequest((GetRequest) request, serverConfiguration.getDataDirectory());
-                    } else {
-                        response = PostFileService.handleRequest((PostRequest) request, serverConfiguration.getDataDirectory());
-                    }
-
-                    out.println(response);
-
-                    printDebugging(serverConfiguration, request, response);
-                } catch(HttpfsException e) {
-                    out.println(new Response(HTTP10, Status.BAD_REQUEST));
+                    request = RequestParsingService.parseRequest(in);
+                } catch (HttpfsException e) {
+                    e.printStackTrace();
+                    response = new Response(HTTP10, Status.BAD_REQUEST);
                 }
+
+
+                if (request != null && request.getMethod().equalsIgnoreCase(GET)) {
+                    response = GetFileService.handleRequest((GetRequest) request, serverConfiguration.getDataDirectory());
+                } else if (request != null && request.getMethod().equalsIgnoreCase(POST)) {
+                    response = PostFileService.handleRequest((PostRequest) request, serverConfiguration.getDataDirectory());
+                }
+
+                out.println(response);
+
+                printDebugging(serverConfiguration, request, response);
 
                 in.close();
                 out.close();
                 client.close();
             }
         } catch (IOException e) {
-            throw new HttpfsException("Address/Port combination not valid");
+            if (out != null) out.println(new Response(HTTP10, Status.INTERNAL_ERROR));
+            e.printStackTrace();
         }
     }
 
     private static void printDebugging(ServerConfiguration serverConfiguration, BaseRequest request, Response response) {
-        String requestDebugging = (serverConfiguration.isVerbose()) ? request.toString() : request.getSimpleOutput();
-        String responseDebugging = (serverConfiguration.isVerbose()) ? response.toString() : response.getSimpleOutput();
-
-        System.out.println("\n--- Request received from client ---");
-        System.out.println(requestDebugging);
-        System.out.println("\n--- Response sent to client ---");
-        System.out.println(responseDebugging);
+        if (request != null) {
+            String requestDebugging = (serverConfiguration.isVerbose()) ? request.toString() : request.getSimpleOutput();
+            System.out.println("\n--- Request received from client ---");
+            System.out.println(requestDebugging);
+        }
+        if (response != null) {
+            String responseDebugging = (serverConfiguration.isVerbose()) ? response.toString() : response.getSimpleOutput();
+            System.out.println("\n--- Response sent to client ---");
+            System.out.println(responseDebugging);
+        }
     }
 }

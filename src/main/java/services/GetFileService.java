@@ -3,45 +3,53 @@ package services;
 import constants.Status;
 import data.GetRequest;
 import data.Response;
+import exception.HttpfsException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
+
+import static constants.Constants.CONTENT_LENGTH;
+import static constants.Constants.CONTENT_TYPE;
 
 public class GetFileService {
 
     private GetFileService() { }
 
-    // TODO GET REQUESTS SHOULD RETURN CONTENT-LENGTH IN HEADERS
     public static Response handleRequest(GetRequest getRequest, String dataDirectory) {
-        Path pathToFile = Paths.get(dataDirectory, getRequest.getUri());
-        StringBuilder body = new StringBuilder();
+        try {
+            Path pathToFile = DirectoryService.validateGetPath(dataDirectory, getRequest.getUri());
+            StringBuilder body = new StringBuilder();
+            String contentType = "text/plain";
 
-        if (Files.isDirectory(pathToFile)) {
-            try (Stream<Path> walk = Files.walk(pathToFile)) {
+            if (Files.isDirectory(pathToFile)) {
+                Stream<Path> walk = Files.walk(pathToFile);
                 walk.forEach(path -> body.append(path.toString()).append("\n"));
-            } catch (IOException e) {
-                // TODO not sure what this indicates as far as server/client goes
-                e.printStackTrace();
-            }
-        } else if (Files.notExists(pathToFile)) {
-            return new Response(getRequest.getHttpVersion(), Status.NOT_FOUND, getRequest.getHeaders());
-        } else if (!Files.isReadable(pathToFile)) {
-            // TODO not sure if this actually works
-            return new Response(getRequest.getHttpVersion(), Status.FORBIDDEN, getRequest.getHeaders());
-        } else {
-            // Valid file that can be read
-            try {
+                walk.close();
+            } else if (Files.notExists(pathToFile)) {
+                return new Response(getRequest.getHttpVersion(), Status.NOT_FOUND);
+            } else if (!Files.isReadable(pathToFile)) {
+                return new Response(getRequest.getHttpVersion(), Status.FORBIDDEN);
+            } else {
+                // Valid file that can be read
                 String fileContents = new String(Files.readAllBytes(pathToFile));
                 body.append(fileContents);
-            } catch (IOException e) {
-                // TODO not sure what this indicates as far as server/client goes
-                e.printStackTrace();
+                contentType = Files.probeContentType(pathToFile);
             }
-        }
 
-        return new Response(getRequest.getHttpVersion(), Status.OK, getRequest.getHeaders(), body.toString());
+            Map<String, String> headers = new HashMap<>(getRequest.getHeaders());
+            headers.put(CONTENT_LENGTH, Integer.toString(body.length()));
+            headers.put(CONTENT_TYPE, contentType);
+
+            return new Response(getRequest.getHttpVersion(), Status.OK, headers, body.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Response(getRequest.getHttpVersion(), Status.INTERNAL_ERROR);
+        } catch (HttpfsException e) {
+            return new Response(getRequest.getHttpVersion(), Status.BAD_REQUEST);
+        }
     }
 }
