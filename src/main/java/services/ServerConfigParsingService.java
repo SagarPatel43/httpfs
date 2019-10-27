@@ -10,14 +10,19 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 
-import static constants.Constants.CWD;
+import static constants.Constants.*;
 
 public class ServerConfigParsingService {
 
     private ServerConfigParsingService() {
     }
 
-    public static ServerConfiguration parseServerConfiguration(String[] args) throws HttpfsException, IOException {
+    public static ServerConfiguration parseServerConfiguration(String[] args) throws HttpfsException {
+        if (args.length == 1 && args[0].equalsIgnoreCase(HELP)) {
+            System.out.println(GENERAL_HELP);
+            System.exit(0);
+        }
+
         boolean verbose;
         int port = 8080;
         String path = CWD;
